@@ -53,27 +53,13 @@ def split_data(data):
     return train_input, train_label, eval_input, eval_label
 
 
-def pos(self, sentence):
-    return okt.pos(sentence)
+def tokenizing_data(data):
+    morph_analyzer = Okt()
+    # 형태소 토크나이즈 결과 문장을 받을 리스트를 생성.
+    result_data = list()
 
-# 불용어 제거 후 필요한 품사 정보만 가져오기
-def get_keywords(self, pos, without_tag=False):
-    f = lambda x: x in self.exclusion_tags
-    word_list = []
-    for p in pos:
-        if f(p[1]) is False:
-            word_list.append(p if without_tag is False else p[0])
-    return word_list
+    for seq in tqdm(data):
+        morphlized_seq = " ".join(morph_analyzer.morphs(seq.replace(' ', '')))
+        result_data.append(morphlized_seq)
 
-# 키워드를 단어 인덱스 시퀀스로 변환
-def get_wordidx_sequence(self, keywords):
-    if self.word_index is None:
-        return []
-    w2i = []
-    for word in keywords:
-        try:
-            w2i.append(self.word_index[word])
-        except KeyError:
-            # 해당 단어가 사전에 없는 경우 OOV 처리
-            w2i.append(self.word_index['OOV'])
-    return w2i
+    return result_data
