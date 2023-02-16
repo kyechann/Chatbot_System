@@ -7,9 +7,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class Embeddings(nn.Module):
-    """
-    Implements embeddings of the words and adds their positional encodings. 
-    """
+    # Transformer 임베딩
     def __init__(self, vocab_size, d_model, max_len = 50):
         super(Embeddings, self).__init__()
         self.d_model = d_model
@@ -147,3 +145,15 @@ class Transformer(nn.Module):
         for layer in self.encoder:
             src_embeddings = layer(src_embeddings, src_mask)
         return src_embeddings
+    
+    def decode(self, target_words, target_mask, src_embeddings, src_mask):
+        tgt_embeddings = self.embed(target_words)
+        for layer in self.decoder:
+            tgt_embeddings = layer(tgt_embeddings, src_embeddings, src_mask, target_mask)
+        return tgt_embeddings
+        
+    def forward(self, src_words, src_mask, target_words, target_mask):
+        encoded = self.encode(src_words, src_mask)
+        decoded = self.decode(target_words, target_mask, encoded, src_mask)
+        out = F.log_softmax(self.logit(decoded), dim = 2)
+        return out

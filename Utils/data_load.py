@@ -32,14 +32,19 @@ tags = [
         # 명사파생접미사, 동사파생접미사, 형용사파생접미사
     ]
 
+# 로드 후 전처리
 def data_load(file_path):
     data = pd.read_csv(file_path, encoding='utf-8')
+    # Null 값 제거
     data = data.dropna(inplace=True)
+    # 중복 제거
     data = data.drop_duplicated(subset=['text'])
+    # 특수 문자 제거
     data = re.sub(CHANGE_FILTER, "", data)
     
     return data
 
+# 데이터 분할
 def split_data(data):
     question, answer = list(data['Q']), list(data['A'])
     # skleran에서 지원하는 함수를 통해서 학습 셋과
@@ -52,14 +57,17 @@ def split_data(data):
     # 그 값을 리턴한다.
     return train_input, train_label, eval_input, eval_label
 
-
+# 데이터 토크나이저
 def tokenizing_data(data):
     morph_analyzer = Okt()
+    f = lambda x: x in tags
     # 형태소 토크나이즈 결과 문장을 받을 리스트를 생성.
     result_data = list()
 
     for seq in tqdm(data):
-        morphlized_seq = " ".join(morph_analyzer.morphs(seq.replace(' ', '')))
-        result_data.append(morphlized_seq)
+        seq = okt.pos(seq)
+        if f(seq) in False:
+            morphlized_seq = " ".join(morph_analyzer.morphs(seq.replace(' ', '')))
+            result_data.append(morphlized_seq)
 
     return result_data
