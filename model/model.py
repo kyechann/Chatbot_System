@@ -18,8 +18,8 @@ class Embeddings(nn.Module):
         
     def create_positinal_encoding(self, max_len, d_model):
         pe = torch.zeros(max_len, d_model).to(device)
-        for pos in range(max_len):   # for each position of the word
-            for i in range(0, d_model, 2):   # for each dimension of the each position
+        for pos in range(max_len):   # 각 단어의 위치 임베딩 
+            for i in range(0, d_model, 2):   # 각 위치의 차원
                 pe[pos, i] = math.sin(pos / (10000 ** ((2 * i)/d_model)))
                 pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1))/d_model)))
         pe = pe.unsqueeze(0)   # include the batch size
