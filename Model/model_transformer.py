@@ -2,6 +2,16 @@ import torch
 import torch.nn as nn
 import math
 import torch.nn.functional as F
+import random
+import pandas as pd
+import glob
+import re
+import numpy as np
+import os
+import cv2
+from sklearn.model_selection import train_test_split
+from tqdm.auto import tqdm
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,12 +32,12 @@ class Embeddings(nn.Module):
             for i in range(0, d_model, 2):   # 각 위치의 차원
                 pe[pos, i] = math.sin(pos / (10000 ** ((2 * i)/d_model)))
                 pe[pos, i + 1] = math.cos(pos / (10000 ** ((2 * (i + 1))/d_model)))
-        pe = pe.unsqueeze(0)   # include the batch size
+        pe = pe.unsqueeze(0)   # 배치 사이즈 포함
         return pe
         
     def forward(self, encoded_words):
         embedding = self.embed(encoded_words) * math.sqrt(self.d_model)
-        embedding += self.pe[:, :embedding.size(1)]   # pe will automatically be expanded with the same batch size as encoded_words
+        embedding += self.pe[:, :embedding.size(1)] 
         embedding = self.dropout(embedding)
         return embedding
 
@@ -49,8 +59,8 @@ class MultiHeadAttention(nn.Module):
         
     def forward(self, query, key, value, mask):
         """
-        query, key, value of shape: (batch_size, max_len, 512)
-        mask of shape: (batch_size, 1, 1, max_words)
+        쿼리, 키, 밸류 == (batch_size, max_len, 512)
+        mask == (batch_size, 1, 1, max_words) * mask : 학습을 위해 일부 데이터를 가리는 것
         """
         # (batch_size, max_len, 512)
         query = self.query(query)
